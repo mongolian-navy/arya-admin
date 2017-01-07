@@ -1,0 +1,142 @@
+swagger: '2.0'
+info:
+    title: arya-admin API
+    description: A configurable mock server
+    version: "0.1.0"
+host: arya.guokr.cn
+schemes:
+    - http
+basePath: /
+consumes:
+    - application/json
+produces:
+    - application/json
+definitions:
+    account_id:
+        type: integer
+        format: int32
+    domain:
+        type: string
+        description: www domain
+        minLength: 1
+        maxLength: 256
+    headers:
+        type: string
+        description: headers in json format
+    body:
+        type: string
+        description: body in post, schema format
+    url:
+         type: string
+         description: de facto limit of 2000 characters
+         minLength: 1
+         maxLength: 2000
+    method:
+        type: string
+        description: http method, such as GET/POST/PUT etc.
+        enum:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+    content_type:
+        type: string
+        description: body content type
+        enum:
+            - json
+            - xml
+            - raw
+    Profile:
+        type: object
+        properties:
+            account_id:
+                $ref: '#/definitions/account_id'
+            name:
+                type: string
+                description: account name
+    Request:
+        type: object
+        properties:
+            method:
+                $ref: '#/definitions/method'
+            path:
+                $ref: '#/definitions/url'
+            headers:
+                $ref: '#/definitions/headers'
+            body:
+                $ref: '#/definitions/body'
+    Response:
+        type: object
+        properties:
+            headers:
+                $ref: '#/definitions/headers'
+            body:
+                $ref: '#/definitions/body'
+            content_type:
+                $ref: '#/definitions/content_type'
+    Route:
+        type: object
+        properties:
+            request:
+                $ref: '#/definitions/Request'
+            responses:
+                $ref: '#/definitions/Response'
+    RoutesGroup:
+        type: object
+        properties:
+            account_id:
+                $ref: '#/definitions/account_id'
+            base_path:
+                $ref: '#/definitions/url'
+            routes:
+                type: array
+                items:
+                    $ref: '#/definitions/Route'
+    App:
+        type: object
+        properties:
+            subdomain:
+                $ref: '#/definitions/domain'
+            routes_group:
+                $ref: '#/definitions/RoutesGroup'
+    Error:
+        properties:
+            error_code:
+                type: string
+            message:
+                type: string
+            text:
+                type: string
+parameters:
+    account_id_in_path:
+        description: account id in path
+        name: account_id
+        in: path
+        required: true
+        type: integer
+    account_id_in_query:
+        description: account id in query
+        name: account_id
+        in: query
+        required: false
+        type: integer
+paths:
+    /accounts/{account_id}:
+        get:
+            summary: account profile
+            description: account profile
+            tags: [OPEN_ACCOUNT]
+            operationId: account_id
+            parameters:
+                - $ref: '#/parameters/account_id_in_path'
+            responses:
+                200:
+                    description: Success
+                    schema:
+                        $ref: '#/definitions/Profile'
+                default:
+                    description: Unexpected Error
+                    schema:
+                        $ref: '#/definitions/Error'
+tags:
+    - {description: "Account Profiles", name: OPEN_ACCOUNT}
