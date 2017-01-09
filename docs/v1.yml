@@ -6,7 +6,7 @@ info:
 host: arya.mongolian-navy.cn
 schemes:
     - http
-basePath: /
+basePath: /v1
 consumes:
     - application/json
 produces:
