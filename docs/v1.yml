@@ -3,7 +3,7 @@ info:
     title: arya-admin API
     description: A configurable mock server
     version: "0.1.0"
-host: arya.guokr.cn
+host: arya.mongolian-navy.cn
 schemes:
     - http
 basePath: /
