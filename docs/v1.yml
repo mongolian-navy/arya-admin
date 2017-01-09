@@ -12,6 +12,9 @@ consumes:
 produces:
     - application/json
 definitions:
+    id:
+        type: integer
+        format: int32
     account_id:
         type: integer
         format: int32
@@ -26,11 +29,19 @@ definitions:
     body:
         type: string
         description: body in post, schema format
+    options:
+        type: object
+        properties:
+            delay:
+                type: integer
+                format: int32
+                description: delay time in ms
+                    
     url:
-         type: string
-         description: de facto limit of 2000 characters
-         minLength: 1
-         maxLength: 2000
+        type: string
+        description: de facto limit of 2000 characters
+        minLength: 1
+        maxLength: 2000
     method:
         type: string
         description: http method, such as GET/POST/PUT etc.
@@ -46,14 +57,15 @@ definitions:
             - json
             - xml
             - raw
-    Profile:
+    Namespace:
         type: object
         properties:
-            account_id:
-                $ref: '#/definitions/account_id'
             name:
                 type: string
-                description: account name
+                description: namespace name
+            ip_segment:
+                type: string
+                description: ip segment such as 10.0.80.9, 10.0.*.*
     Request:
         type: object
         properties:
@@ -65,6 +77,8 @@ definitions:
                 $ref: '#/definitions/headers'
             body:
                 $ref: '#/definitions/body'
+            options:
+                $ref: '#/definitions/options'
     Response:
         type: object
         properties:
@@ -77,28 +91,40 @@ definitions:
     Route:
         type: object
         properties:
+            id:
+                $ref: '#/definitions/id'
             request:
                 $ref: '#/definitions/Request'
             responses:
                 $ref: '#/definitions/Response'
-    RoutesGroup:
+    AppEnv:
         type: object
         properties:
-            account_id:
-                $ref: '#/definitions/account_id'
-            base_path:
-                $ref: '#/definitions/url'
+            id:
+                $ref: '#/definitions/id'
+            namespace:
+                $ref: '#/definitions/Namespace'
             routes:
                 type: array
                 items:
-                    $ref: '#/definitions/Route'
-    App:
+                    $ref: '#/definitions/Routes'
+    # TODO 先建立Appenv，再添加Route
+    CreateRoute:
         type: object
         properties:
-            subdomain:
-                $ref: '#/definitions/domain'
-            routes_group:
-                $ref: '#/definitions/RoutesGroup'
+            request:
+                $ref: '#/definitions/Request'
+            responses:
+                $ref: '#/definitions/Response'
+    CreateAppEnv:
+        type: object
+        properties:
+            namespace:
+                $ref: '#/definitions/Namespace'
+            routes:
+                type: array
+                items:
+                    $ref: '#/definitions/Routes'
     Error:
         properties:
             error_code:
@@ -114,29 +140,110 @@ parameters:
         in: path
         required: true
         type: integer
+    appenv_id_in_path:
+        description: appenv id in path
+        name: appenv_id
+        in: path
+        required: true
+        type: integer
     account_id_in_query:
         description: account id in query
         name: account_id
         in: query
         required: false
         type: integer
+    page:
+        description: page number
+        name: page
+        in: query
+        required: false
+        type: integer
+        format: int32
+        maximum: 10000
+    per_page:
+        description: per_page number
+        name: per_page
+        in: query
+        required: false
+        type: integer
+        format: int32
+        maximum: 100
+    offset:
+        description: offset number
+        name: offset
+        in: query
+        required: false
+        format: int32
+        type: integer
+    limit:
+        description: limit number
+        name: limit
+        in: query
+        required: false
+        type: integer
+        format: int32
+        maximum: 100
 paths:
-    /accounts/{account_id}:
+    /appenvs:
         get:
-            summary: account profile
-            description: account profile
-            tags: [OPEN_ACCOUNT]
-            operationId: account_id
+            summary: app list
+            description: app list
+            tags: [OPEN_APPENV]
+            operationId: get_appenvs
             parameters:
-                - $ref: '#/parameters/account_id_in_path'
+                - $ref: '#/parameters/offset'
+                - $ref: '#/parameters/limit'
+                - $ref: '#/parameters/page'
+                - $ref: '#/parameters/per_page'
             responses:
                 200:
                     description: Success
                     schema:
-                        $ref: '#/definitions/Profile'
+                        type: array
+                        items:
+                            $ref: '#/definitions/AppEnv'
+                default:
+                    description: Unexpected Error
+                    schema:
+                        $ref: '#/definitions/Error'
+        post:
+            summary: create appenv
+            description: create appenv
+            tags: [OPEN_APPENV]
+            operationId: post_appenvs
+            parameters:
+                - name: create_appenv
+                  in: body
+                  required: true
+                  schema:
+                      $ref: '#/definitions/CreateAppEnv'
+            responses:
+                201:
+                    description: created appenv
+                    schema:
+                        $ref: '#/definitions/AppEnv'
+
+
+    /appenvs/{appenv_id}:
+        get:
+            summary: get appenv
+            description: get appenv
+            tags: [OPEN_APPENV]
+            operationId: get_appenvs_id
+            parameters:
+                - $ref: '#/parameters/appenv_id_in_path'
+                - $ref: '#/parameters/offset'
+                - $ref: '#/parameters/limit'
+                - $ref: '#/parameters/page'
+                - $ref: '#/parameters/per_page'
+            responses:
+                200:
+                    description: Success
+                    schema:
+                        $ref: '#/definitions/AppEnv'
                 default:
                     description: Unexpected Error
                     schema:
                         $ref: '#/definitions/Error'
 tags:
-    - {description: "Account Profiles", name: OPEN_ACCOUNT}
+    - {description: "应用环境管理", name: OPEN_APPENV}
