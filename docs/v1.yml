@@ -104,7 +104,7 @@ definitions:
                 $ref: '#/definitions/Request'
             responses:
                 $ref: '#/definitions/Response'
-    AppEnv:
+    App:
         type: object
         properties:
             id:
@@ -115,7 +115,7 @@ definitions:
                 type: array
                 items:
                     $ref: '#/definitions/Route'
-    CreateAppEnv:
+    CreateApp:
         type: object
         properties:
             namespace:
@@ -134,11 +134,11 @@ definitions:
             report:
                 type: string
                 description: report in json format (return by engine)
-            appenvs:
+            apps:
                 type: array
-                description: active appenvs (return by engine)
+                description: active apps (return by engine)
                 items:
-                    $ref: '#/definitions/AppEnv'
+                    $ref: '#/definitions/App'
     OperateEngine:
         type: object
         properties:
@@ -148,7 +148,7 @@ definitions:
                     - start
                     - stop
                     - restart
-            appenv_ids:
+            app_ids:
                 type: array
                 items:
                     $ref: '#/definitions/id'
@@ -167,9 +167,9 @@ parameters:
         in: path
         required: true
         type: integer
-    appenv_id_in_path:
-        description: appenv id in path
-        name: appenv_id
+    app_id_in_path:
+        description: app id in path
+        name: app_id
         in: path
         required: true
         type: integer
@@ -217,12 +217,12 @@ parameters:
         format: int32
         maximum: 100
 paths:
-    /appenvs:
+    /apps:
         get:
-            summary: appenv list
-            description: appenv list
+            summary: app list
+            description: app list
             tags: [OPEN_ADMIN]
-            operationId: get_appenvs
+            operationId: get_apps
             parameters:
                 - $ref: '#/parameters/offset'
                 - $ref: '#/parameters/limit'
@@ -234,39 +234,39 @@ paths:
                     schema:
                         type: array
                         items:
-                            $ref: '#/definitions/AppEnv'
+                            $ref: '#/definitions/App'
                 default:
                     description: Unexpected Error
                     schema:
                         $ref: '#/definitions/Error'
         post:
-            summary: create appenv
-            description: create appenv
+            summary: create app
+            description: create app
             tags: [OPEN_ADMIN]
-            operationId: post_appenvs
+            operationId: post_apps
             parameters:
-                - name: create_appenv
+                - name: create_app
                   in: body
                   required: true
                   schema:
-                      $ref: '#/definitions/CreateAppEnv'
+                      $ref: '#/definitions/CreateApp'
             responses:
                 201:
-                    description: created appenv
+                    description: created app
                     schema:
-                        $ref: '#/definitions/AppEnv'
+                        $ref: '#/definitions/App'
                 default:
                     description: Unexpected Error
                     schema:
                         $ref: '#/definitions/Error'
-    /appenvs/{appenv_id}:
+    /apps/{app_id}:
         get:
-            summary: get appenv
-            description: get appenv
+            summary: get app
+            description: get app
             tags: [OPEN_ADMIN]
-            operationId: get_appenvs_id
+            operationId: get_apps_id
             parameters:
-                - $ref: '#/parameters/appenv_id_in_path'
+                - $ref: '#/parameters/app_id_in_path'
                 - $ref: '#/parameters/offset'
                 - $ref: '#/parameters/limit'
                 - $ref: '#/parameters/page'
@@ -275,19 +275,19 @@ paths:
                 200:
                     description: Success
                     schema:
-                        $ref: '#/definitions/AppEnv'
+                        $ref: '#/definitions/App'
                 default:
                     description: Unexpected Error
                     schema:
                         $ref: '#/definitions/Error'
-    /appenvs/{appenv_id}/routes:
+    /apps/{app_id}/routes:
         get:
-            summary: get routes of appenv
-            description: get routes of appenv
+            summary: get routes of app
+            description: get routes of app
             tags: [OPEN_ADMIN]
-            operationId: get_appenv_id_routes
+            operationId: get_app_id_routes
             parameters:
-                - $ref: '#/parameters/appenv_id_in_path'
+                - $ref: '#/parameters/app_id_in_path'
                 - $ref: '#/parameters/offset'
                 - $ref: '#/parameters/limit'
                 - $ref: '#/parameters/page'
@@ -304,12 +304,12 @@ paths:
                     schema:
                         $ref: '#/definitions/Error'
         post:
-            summary: create route of appenv
-            description: create route of appenv
+            summary: create route of app
+            description: create route of app
             tags: [OPEN_ADMIN]
-            operationId: post_appenv_id_routes
+            operationId: post_app_id_routes
             parameters:
-                - $ref: '#/parameters/appenv_id_in_path'
+                - $ref: '#/parameters/app_id_in_path'
                 - name: create_route
                   in: body
                   required: true
@@ -324,14 +324,14 @@ paths:
                     description: Unexpected Error
                     schema:
                         $ref: '#/definitions/Error'
-    /appenvs/{appenv_id}/routes/{route_id}:
+    /apps/{app_id}/routes/{route_id}:
         get:
-            summary: get route of appenv
-            description: get route of appenv
+            summary: get route of app
+            description: get route of app
             tags: [OPEN_ADMIN]
-            operationId: get_appenv_id_routes_id
+            operationId: get_apps_id_routes_id
             parameters:
-                - $ref: '#/parameters/appenv_id_in_path'
+                - $ref: '#/parameters/app_id_in_path'
                 - $ref: '#/parameters/route_id_in_path'
             responses:
                 200:
