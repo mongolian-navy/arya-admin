@@ -97,6 +97,13 @@ definitions:
                 $ref: '#/definitions/Request'
             responses:
                 $ref: '#/definitions/Response'
+    CreateRoute:
+        type: object
+        properties:
+            request:
+                $ref: '#/definitions/Request'
+            responses:
+                $ref: '#/definitions/Response'
     AppEnv:
         type: object
         properties:
@@ -107,24 +114,44 @@ definitions:
             routes:
                 type: array
                 items:
-                    $ref: '#/definitions/Routes'
-    # TODO 先建立Appenv，再添加Route
-    CreateRoute:
-        type: object
-        properties:
-            request:
-                $ref: '#/definitions/Request'
-            responses:
-                $ref: '#/definitions/Response'
+                    $ref: '#/definitions/Route'
     CreateAppEnv:
         type: object
         properties:
             namespace:
                 $ref: '#/definitions/Namespace'
-            routes:
+    Engine:
+        type: object
+        properties:
+            status:
+                type: string
+                enum:
+                    - active
+                    - inactive
+            message:
+                type: string
+                description: status detail
+            report:
+                type: string
+                description: report in json format (return by engine)
+            appenvs:
+                type: array
+                description: active appenvs (return by engine)
+                items:
+                    $ref: '#/definitions/AppEnv'
+    OperateEngine:
+        type: object
+        properties:
+            operate:
+                type: string
+                enum:
+                    - start
+                    - stop
+                    - restart
+            appenv_ids:
                 type: array
                 items:
-                    $ref: '#/definitions/Routes'
+                    $ref: '#/definitions/id'
     Error:
         properties:
             error_code:
@@ -143,6 +170,12 @@ parameters:
     appenv_id_in_path:
         description: appenv id in path
         name: appenv_id
+        in: path
+        required: true
+        type: integer
+    route_id_in_path:
+        description: route id in path
+        name: route_id
         in: path
         required: true
         type: integer
@@ -186,9 +219,9 @@ parameters:
 paths:
     /appenvs:
         get:
-            summary: app list
-            description: app list
-            tags: [OPEN_APPENV]
+            summary: appenv list
+            description: appenv list
+            tags: [OPEN_ADMIN]
             operationId: get_appenvs
             parameters:
                 - $ref: '#/parameters/offset'
@@ -209,7 +242,7 @@ paths:
         post:
             summary: create appenv
             description: create appenv
-            tags: [OPEN_APPENV]
+            tags: [OPEN_ADMIN]
             operationId: post_appenvs
             parameters:
                 - name: create_appenv
@@ -222,13 +255,15 @@ paths:
                     description: created appenv
                     schema:
                         $ref: '#/definitions/AppEnv'
-
-
+                default:
+                    description: Unexpected Error
+                    schema:
+                        $ref: '#/definitions/Error'
     /appenvs/{appenv_id}:
         get:
             summary: get appenv
             description: get appenv
-            tags: [OPEN_APPENV]
+            tags: [OPEN_ADMIN]
             operationId: get_appenvs_id
             parameters:
                 - $ref: '#/parameters/appenv_id_in_path'
@@ -245,5 +280,103 @@ paths:
                     description: Unexpected Error
                     schema:
                         $ref: '#/definitions/Error'
+    /appenvs/{appenv_id}/routes:
+        get:
+            summary: get routes of appenv
+            description: get routes of appenv
+            tags: [OPEN_ADMIN]
+            operationId: get_appenv_id_routes
+            parameters:
+                - $ref: '#/parameters/appenv_id_in_path'
+                - $ref: '#/parameters/offset'
+                - $ref: '#/parameters/limit'
+                - $ref: '#/parameters/page'
+                - $ref: '#/parameters/per_page'
+            responses:
+                200:
+                    description: Success
+                    schema:
+                        type: array
+                        items:
+                            $ref: '#/definitions/Route'
+                default:
+                    description: Unexpected Error
+                    schema:
+                        $ref: '#/definitions/Error'
+        post:
+            summary: create route of appenv
+            description: create route of appenv
+            tags: [OPEN_ADMIN]
+            operationId: post_appenv_id_routes
+            parameters:
+                - $ref: '#/parameters/appenv_id_in_path'
+                - name: create_route
+                  in: body
+                  required: true
+                  schema:
+                      $ref: '#/definitions/CreateRoute'
+            responses:
+                201:
+                    description: created route
+                    schema:
+                        $ref: '#/definitions/Route'
+                default:
+                    description: Unexpected Error
+                    schema:
+                        $ref: '#/definitions/Error'
+    /appenvs/{appenv_id}/routes/{route_id}:
+        get:
+            summary: get route of appenv
+            description: get route of appenv
+            tags: [OPEN_ADMIN]
+            operationId: get_appenv_id_routes_id
+            parameters:
+                - $ref: '#/parameters/appenv_id_in_path'
+                - $ref: '#/parameters/route_id_in_path'
+            responses:
+                200:
+                    description: Success
+                    schema:
+                        $ref: '#/definitions/Route'
+                default:
+                    description: Unexpected Error
+                    schema:
+                        $ref: '#/definitions/Error'
+    /engine:
+        get:
+            summary: get engine status
+            description: get engine status
+            tags: [OPEN_ENGINE]
+            operationId: get_engine
+            responses:
+                200:
+                    description: Success
+                    schema:
+                        $ref: '#/definitions/Engine'
+                default:
+                    description: Unexpected Error
+                    schema:
+                        $ref: '#/definitions/Error'
+        put:
+            summary: start/stop/restart engine
+            description: start/stop/restart engine
+            tags: [OPEN_ENGINE]
+            operationId: put_engine
+            parameters:
+                - name: put_engine
+                  in: body
+                  required: true
+                  schema:
+                      $ref: '#/definitions/OperateEngine'
+            responses:
+                200:
+                    description: operation succeed
+                    schema:
+                        $ref: '#/definitions/Engine'
+                default:
+                    description: Unexpected Error
+                    schema:
+                        $ref: '#/definitions/Error'
 tags:
-    - {description: "应用环境管理", name: OPEN_APPENV}
+    - {description: "配置管理", name: OPEN_ADMIN}
+    - {description: "引擎控制", name: OPEN_ENGINE}
